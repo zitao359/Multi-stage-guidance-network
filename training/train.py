@@ -9,7 +9,7 @@ from training.utils import get_loss
 
 def get_optimizer(model, stage):
 
-    assert stage in {'D', 'N', 'A'}
+    assert stage in {'N', 'A'}
 
     if stage == 'N':
         for param in model.parameters():
@@ -20,17 +20,6 @@ def get_optimizer(model, stage):
         optimizer = optim.Adam(model.normal.parameters(), lr=0.001, betas=(0.9, 0.999))#0.000125
         loss_weights = [0, 0, 0, 1]
 
-    elif stage == 'D':
-        for param in model.parameters():
-            param.requires_grad = False
-        for param in model.color_path.parameters():
-            param.requires_grad = True
-        for param in model.normal_path.parameters():
-            param.requires_grad = True
-
-        optimizer = optim.Adam([{'params':model.color_path.parameters()},
-                                {'params':model.normal_path.parameters()}], lr=0.000125, betas=(0.9, 0.999))
-        loss_weights = [0.3, 0.3, 0.0, 0.1]
 
     else:
         for param in model.parameters():
@@ -45,17 +34,14 @@ def get_optimizer(model, stage):
                                 {'params':model.mask_block_C.parameters()},
                                 {'params':model.mask_block_N.parameters()}], lr=0.001, betas=(0.9, 0.999))
 
-        loss_weights = [0.3, 0.3, 0.5, 0.1]
+        loss_weights = [0.3, 0.3, 0.6, 0.2]
 
     return model, optimizer, loss_weights
 
 
 
 def train_val(model, loader, epoch, device, stage):
-    """Train and validate the model
 
-    Returns: training and validation loss
-    """
 
     model, optimizer, loss_weights = get_optimizer(model, stage)
     train_loss, val_loss = [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]####################################train00000000000000000000000000
@@ -92,19 +78,15 @@ def train_val(model, loader, epoch, device, stage):
 
 
 
-            # print(loss_weights[3],loss5) #loss_weights[3] * 0.0433 * 0.5   0.0462*0.5  0.047*0.5   0.0422*0.5  0.5*0.0409
 
             loss = loss_weights[0] * loss_c + loss_weights[1] * loss_n + loss_weights[2] * loss_d +loss_weights[3] * 0.0434* 0.5 +loss_weights[3] * loss5##loss_weights[4]*smoothloss######################################################
-##loss_weights[3] * loss_normal loss_weights[3] *0.0448*0.8+loss_weights[3] *loss5+loss_weights[3] *0.0448*0.8  loss_weights[3] * 0.0576*0.5  loss_weights[3] * 0.0555*0.5
 
-            # loss_weights[3] * 0.0433 * 0.5   loss_weights[3] * 0.0423*0.5
             total_loss += loss.item()
             total_loss_d += loss_d.item()
             total_loss_c += loss_c.item()
             total_loss_n += loss_n.item()
             total_loss_normal += loss_normal.item()
             loss5_total += loss5.item()
-            # smoothloss_total+=smoothloss.item()##################################################
 
             total_pic += rgb.size(0)
 
@@ -116,8 +98,6 @@ def train_val(model, loader, epoch, device, stage):
                 train_loss[4] = total_loss_normal/total_pic
                 train_loss[5] = loss5_total / total_pic
 
-
-                # train_loss[5] = smoothloss_total / total_pic
 
                 loss.backward()
                 optimizer.step()
@@ -140,7 +120,7 @@ def train_val(model, loader, epoch, device, stage):
     return train_loss, val_loss
 
 class EarlyStop():
-    """Early stop training if validation loss didn't improve for a long time"""
+
     def __init__(self, patience, mode = 'min'):
         self.patience = patience
         self.mode = mode

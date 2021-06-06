@@ -33,12 +33,7 @@ def get_predicted_depth(color_path_dense, normal_path_dense, color_attn, normal_
     return predicted_dense, pred_color_path_dense, pred_normal_path_dense
 
 def get_depth_and_normal(model, rgb, lidar, mask):
-    """Given model and input of model, get dense depth and surface normal
 
-    Returns:
-    predicted_dense: b x c x h x w
-    pred_surface_normal: b x c x h x w
-    """
     model.eval()
     with torch.no_grad():
         color_path_dense, normal_path_dense, color_attn, normal_attn, pred_surface_normal = model(rgb=rgb,lidar= lidar, mask=mask,stage='A')
@@ -49,22 +44,14 @@ def get_depth_and_normal(model, rgb, lidar, mask):
 
 
 def normal_to_0_1(img):
-    """Normalize image to [0, 1], used for tensorboard visualization."""
+
     return (img - torch.min(img)) / (torch.max(img) - torch.min(img))
 
 
 def normal_loss(pred_normal, gt_normal, gt_normal_mask):
-    """Calculate loss of surface normal (in the stage N)
-
-    Params:
-    pred: b x 3 x 128 x 256
-    normal_gt: b x 3 x 128 x 256
-    normal_mask: b x 3 x 128 x 256
-    """
 
     valid_mask = (gt_normal_mask > 0.0).detach()
 
-    #pred_n = pred.permute(0,2,3,1)
     pred_normal = pred_normal[valid_mask]
     gt_normal = gt_normal[valid_mask]
 
@@ -82,16 +69,6 @@ def mse_loss(input,target):
 
 
 def get_depth_loss(dense, c_dense, n_dense, gt):
-    """
-    dense: b x 1 x 128 x 256
-    c_dense: b x 1 x 128 x 256
-    n_dense: b x 1 x 128 x 256
-    gt: b x 1 x 128 x 256
-    params: b x 3 x 128 x 256
-    normals: b x 128 x 256 x 3
-    """
-
-
 
 
     valid_mask = (gt > 0.0).detach() # b x 1 x 128 x 256
@@ -106,16 +83,7 @@ def get_depth_loss(dense, c_dense, n_dense, gt):
     loss_c = torch.sqrt(criterion(c_dense, gt))
     loss_n = torch.sqrt(criterion(n_dense, gt))
 
-    # loss_d = mse_loss(dense, gt)
-    # loss_c = mse_loss(c_dense, gt)
-    # loss_n = criterion(n_dense, gt)
 
-
-
-
-
-
-    
     return loss_d, loss_c, loss_n
 
 
@@ -207,15 +175,6 @@ def get_loss(color_path_dense, normal_path_dense, color_attn, normal_attn, pred_
 
 
         loss5 = dense_normal_loss(pred, pred_surface_normal, params, depthI1, depthJ1)
-        # print(loss5)@！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！！
-
-
-        ###########jiashang!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # smo=SmoothnessLoss()
-        # print(predicted_dense.size())
-
-
-        # smooth_loss = 0#smo(predicted_dense[:,0,:,:])###########################################################################
 
     return loss_c, loss_n, loss_d, loss_normal,loss5###############################################################3
 

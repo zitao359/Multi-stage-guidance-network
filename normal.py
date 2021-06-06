@@ -1,10 +1,7 @@
 import os
 from multiprocessing import Pool, cpu_count
-
-# surface_normal library from https://github.com/valgur/surface-normal
-from surface_normal import normals_from_depth
 from tqdm.auto import tqdm
-from env import KITTI_DATASET_PATH
+from peizhi import KITTI_DATASET_PATH
 
 INTRINSICS = {
     "2011_09_26": (721.5377, 609.5593, 172.8540),
@@ -28,26 +25,26 @@ if __name__ == '__main__':
 
     processing_args = []
     for split in ['train', 'val']:
-        date_folder_list = sorted(os.listdir(os.path.join(KITTI_GT_PATH, split))) # list of 2011_XX_XX_drive_XXXX_sync
+        date_folder_list = sorted(os.listdir(os.path.join(KITTI_GT_PATH, split))) #
         
         for date_folder in date_folder_list:
             sub_path_to_date_folder = os.path.join(split, date_folder, 'proj_depth', 'groundtruth')
-            gt_path = os.path.join(KITTI_GT_PATH, sub_path_to_date_folder) # path to groundtruth
+            gt_path = os.path.join(KITTI_GT_PATH, sub_path_to_date_folder) #
 
             date = date_folder[:10]
-            intrinsic = INTRINSICS[date] # get intrincsic of that date
+            intrinsic = INTRINSICS[date]
 
             for img_folder in ['image_02', 'image_03']:
-                sub_path_to_img_folder = os.path.join(sub_path_to_date_folder, img_folder) # subpath to image_02 or image_03
+                sub_path_to_img_folder = os.path.join(sub_path_to_date_folder, img_folder) #
                 gt_path = os.path.join(KITTI_GT_PATH, sub_path_to_img_folder)
 
-                img_fn_list = sorted(os.listdir(gt_path)) # list of png file
+                img_fn_list = sorted(os.listdir(gt_path)) #
                 for img_fn in img_fn_list:
-                    normal_folder = os.path.join(KITTI_NORMALS_PATH, sub_path_to_img_folder) # stored directory
+                    normal_folder = os.path.join(KITTI_NORMALS_PATH, sub_path_to_img_folder) #
                     if not os.path.exists(normal_folder):
                         os.makedirs(normal_folder)
 
-                    gt_img_path = os.path.join(KITTI_GT_PATH, sub_path_to_img_folder, img_fn) # whole path to png files
+                    gt_img_path = os.path.join(KITTI_GT_PATH, sub_path_to_img_folder, img_fn) #
                     normal_img_path = os.path.join(normal_folder, img_fn)
  
                     if not os.path.exists(normal_img_path):

@@ -9,9 +9,9 @@ from skimage import segmentation
 # import os
 import torch
 import torch.nn as nn
-class deepCompletionUnit(nn.Module):
+class MsG(nn.Module):
     def __init__(self, mode):
-        super(deepCompletionUnit, self).__init__()
+        super(MsG, self).__init__()
         assert mode in {'N', 'C', 'I'}
         self.mode = mode
         self.guidenet = Net()
@@ -168,15 +168,14 @@ class maskBlock1(nn.Module):
     def forward(self, x):
         return self.mask_block(x)
 
-class deepLidar(nn.Module):
+class deepMsG(nn.Module):
     def __init__(self):
-        super(deepLidar, self).__init__()
-        self.normal = deepCompletionUnit(mode='I')
-        self.color_path = deepCompletionUnit(mode='C')
-        self.normal_path = deepCompletionUnit(mode='N')
+        super(deepMsG, self).__init__()
+        self.normal = MsG(mode='I')
+        self.color_path = MsG(mode='C')
+        self.normal_path = MsG(mode='N')
         self.mask_block_C = maskBlock()
         self.mask_block_N = maskBlock1()
-
 
     def forward(self, rgb, lidar, mask, stage): ###rgb1
         surface_normal ,global_features= self.normal(rgb, lidar, mask ) ##r
